@@ -58,21 +58,32 @@ cd setup-chezmoi
 
 ## Managed Dotfiles
 
-If present on your machine and not already tracked, these are the files/directories the script adds to chezmoi automatically. Nothing outside this list is ever touched, and nothing containing credentials (e.g. `.netrc`, cloud/API credential files, private SSH keys) is ever added:
+If present on your machine and not already tracked by chezmoi, the script adds these files/directories automatically — nothing outside this list is ever touched, and nothing that can hold credentials (e.g. `.netrc`, cloud/API credential files, private SSH keys) is ever added:
 
-- `~/.bashrc`, `~/.bash_profile`, `~/.bash_login`, `~/.profile`
-- `~/.zshrc`, `~/.zprofile`, `~/.zshenv`
-- `~/.config/fish/config.fish`
-- `~/.inputrc`
-- `~/.gitconfig`, `~/.gitignore_global`
-- `~/.vimrc`
-- `~/.config/nvim`
-- `~/.tmux.conf`, `~/.config/tmux/tmux.conf`
-- `~/.config/alacritty/alacritty.toml`, `~/.config/kitty/kitty.conf`, `~/.config/wezterm/wezterm.lua`, `~/.config/foot/foot.ini`
-- `~/.curlrc`, `~/.wgetrc`
-- `~/.config/MangoHud/MangoHud.conf`, `~/.config/lutris/lutris.conf`
-- `~/.config/starship.toml`
-- `~/.ssh/config` (connection settings only — never key files)
+| Path(s) | What it configures |
+| --- | --- |
+| `~/.bashrc`, `~/.bash_profile`, `~/.bash_login`, `~/.profile` | Bash shell startup and interactive behavior |
+| `~/.zshrc`, `~/.zprofile`, `~/.zshenv` | Zsh shell startup and interactive behavior |
+| `~/.config/fish/config.fish` | Fish shell configuration |
+| `~/.inputrc` | Readline command-line editing behavior (used by bash and other readline-based tools) |
+| `~/.gitconfig`, `~/.gitignore_global` | Git identity, aliases, and global ignore rules |
+| `~/.vimrc` | Vim editor configuration |
+| `~/.config/nvim` | Neovim configuration (whole directory) |
+| `~/.tmux.conf`, `~/.config/tmux/tmux.conf` | tmux terminal multiplexer configuration |
+| `~/.config/alacritty/alacritty.toml` | Alacritty terminal emulator |
+| `~/.config/kitty/kitty.conf` | Kitty terminal emulator |
+| `~/.config/wezterm/wezterm.lua` | WezTerm terminal emulator |
+| `~/.config/foot/foot.ini` | Foot terminal emulator (Wayland-native) |
+| `~/.Xresources` | X11 terminal/font/color resource settings |
+| `~/.screenrc` | GNU Screen terminal multiplexer configuration |
+| `~/.config/sway/config` | Sway (Wayland tiling compositor) configuration |
+| `~/.config/i3/config`, `~/.i3/config` | i3 (X11 tiling window manager) configuration |
+| `~/.curlrc` | Default options for curl |
+| `~/.wgetrc` | Default options for wget |
+| `~/.config/MangoHud/MangoHud.conf` | MangoHud performance/FPS overlay, common on gaming distros |
+| `~/.config/lutris/lutris.conf` | Lutris game manager settings |
+| `~/.config/starship.toml` | Starship cross-shell prompt |
+| `~/.ssh/config` | SSH client host aliases and connection options — connection settings only, never key files |
 
 ## Using chezmoi
 
