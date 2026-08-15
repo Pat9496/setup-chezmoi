@@ -4,7 +4,40 @@ set -euo pipefail
 OS_ID=""
 OS_ID_LIKE=""
 IS_ATOMIC=false
+IS_READONLY_ROOT=false
 PKG_MANAGER=""
+
+DOTFILE_CANDIDATES=(
+  "$HOME/.bashrc"
+  "$HOME/.bash_profile"
+  "$HOME/.bash_login"
+  "$HOME/.profile"
+  "$HOME/.zshrc"
+  "$HOME/.zprofile"
+  "$HOME/.zshenv"
+  "$HOME/.config/fish/config.fish"
+  "$HOME/.inputrc"
+  "$HOME/.gitconfig"
+  "$HOME/.gitignore_global"
+  "$HOME/.vimrc"
+  "$HOME/.config/nvim"
+  "$HOME/.tmux.conf"
+  "$HOME/.config/tmux/tmux.conf"
+  "$HOME/.config/alacritty/alacritty.toml"
+  "$HOME/.config/kitty/kitty.conf"
+  "$HOME/.config/wezterm/wezterm.lua"
+  "$HOME/.config/foot/foot.ini"
+  "$HOME/.curlrc"
+  "$HOME/.wgetrc"
+  "$HOME/.config/MangoHud/MangoHud.conf"
+  "$HOME/.config/lutris/lutris.conf"
+  "$HOME/.config/starship.toml"
+  "$HOME/.ssh/config"
+)
+
+ADDED_DOTFILES=()
+DOTFILES_COMMITTED=false
+DOTFILES_PUSHED=false
 
 log_info() { printf '[INFO] %s\n' "$*" >&2; }
 log_warn() { printf '[WARN] %s\n' "$*" >&2; }
@@ -33,6 +66,31 @@ detect_os() {
 
   if [[ -f /run/ostree-booted ]] || command -v rpm-ostree >/dev/null 2>&1; then
     IS_ATOMIC=true
+  fi
+}
+
+detect_readonly_root() {
+  if [[ "$IS_ATOMIC" == true ]]; then
+    return 0
+  fi
+
+  if command -v steamos-readonly >/dev/null 2>&1; then
+    IS_READONLY_ROOT=true
+    return 0
+  fi
+
+  local mount_opts
+  mount_opts="$(findmnt -no OPTIONS / 2>/dev/null || true)"
+  if [[ -n "$mount_opts" ]]; then
+    local -a opts
+    IFS=',' read -r -a opts <<< "$mount_opts"
+    local opt
+    for opt in "${opts[@]}"; do
+      if [[ "$opt" == "ro" ]]; then
+        IS_READONLY_ROOT=true
+        return 0
+      fi
+    done
   fi
 }
 
@@ -101,8 +159,20 @@ install_packages() {
       "${sudo_prefix[@]}" dnf install -y "${pkgs[@]}"
       ;;
     pacman)
-      log_info "Installing via pacman: ${pkgs[*]}"
-      "${sudo_prefix[@]}" pacman -Sy --noconfirm "${pkgs[@]}"
+      if [[ "$IS_READONLY_ROOT" == true ]]; then
+        if command -v steamos-readonly >/dev/null 2>&1; then
+          log_warn "Read-only root filesystem detected (SteamOS-style); temporarily disabling it to install: ${pkgs[*]}"
+          "${sudo_prefix[@]}" steamos-readonly disable
+          "${sudo_prefix[@]}" pacman -Sy --noconfirm "${pkgs[@]}"
+          "${sudo_prefix[@]}" steamos-readonly enable
+          log_warn "A reboot may be required before these packages are fully usable."
+        else
+          die "Detected a read-only root filesystem (checked for 'steamos-readonly') with no known way to temporarily unlock it for distro '${OS_ID}' (ID_LIKE='${OS_ID_LIKE}'). Install ${pkgs[*]} manually, then re-run this script; chezmoi itself installs independently of the package manager."
+        fi
+      else
+        log_info "Installing via pacman: ${pkgs[*]}"
+        "${sudo_prefix[@]}" pacman -Sy --noconfirm "${pkgs[@]}"
+      fi
       ;;
     zypper)
       log_info "Installing via zypper: ${pkgs[*]}"
@@ -267,9 +337,11 @@ setup_ssh_key() {
 
   cat <<'EOF'
 Add this SSH key to your git hosting provider before continuing, e.g.:
-  GitHub:    Settings -> SSH and GPG keys -> New SSH key
-  GitLab:    Preferences -> SSH Keys
-  Bitbucket: Personal settings -> SSH keys
+  GitHub:       Settings -> SSH and GPG keys -> New SSH key
+  GitLab:       Preferences -> SSH Keys
+  Bitbucket:    Personal settings -> SSH keys
+  Gitea:        Settings -> SSH / GPG Keys -> Add Key
+  Azure DevOps: User settings -> SSH public keys -> New Key
   Other/self-hosted: consult your git host's account or profile settings
 EOF
 
@@ -278,6 +350,127 @@ EOF
 
 is_chezmoi_initialized() {
   chezmoi source-path >/dev/null 2>&1
+}
+
+add_common_dotfiles() {
+  ADDED_DOTFILES=()
+
+  local -a managed=()
+  local managed_raw
+  managed_raw="$(chezmoi managed --path-style=absolute 2>/dev/null || true)"
+  if [[ -n "$managed_raw" ]]; then
+    mapfile -t managed <<< "$managed_raw"
+  fi
+
+  local path
+  for path in "${DOTFILE_CANDIDATES[@]}"; do
+    if [[ ! -e "$path" ]]; then
+      continue
+    fi
+    if array_contains "$path" "${managed[@]}"; then
+      continue
+    fi
+    log_info "Adding to chezmoi source state: $path"
+    chezmoi add "$path"
+    ADDED_DOTFILES+=("$path")
+  done
+
+  if [[ ${#ADDED_DOTFILES[@]} -eq 0 ]]; then
+    log_info "No new common dotfiles found to add."
+  else
+    log_info "Added ${#ADDED_DOTFILES[@]} dotfile path(s) to chezmoi."
+  fi
+}
+
+ensure_git_identity() {
+  local source_dir="$1"
+  local name email
+
+  name="$(git -C "$source_dir" config user.name 2>/dev/null || true)"
+  email="$(git -C "$source_dir" config user.email 2>/dev/null || true)"
+
+  if [[ -n "$name" && -n "$email" ]]; then
+    return 0
+  fi
+
+  log_warn "No git identity (user.name/user.email) configured for the dotfiles repo."
+  if [[ -z "$name" ]]; then
+    read -r -p "Git user.name for this dotfiles repo: " name
+    [[ -n "$name" ]] || die "A git user.name is required to commit the dotfiles repo."
+    git -C "$source_dir" config user.name "$name"
+  fi
+  if [[ -z "$email" ]]; then
+    read -r -p "Git user.email for this dotfiles repo: " email
+    [[ -n "$email" ]] || die "A git user.email is required to commit the dotfiles repo."
+    git -C "$source_dir" config user.email "$email"
+  fi
+}
+
+commit_and_push_dotfiles() {
+  DOTFILES_COMMITTED=false
+  DOTFILES_PUSHED=false
+
+  local source_dir
+  source_dir="$(chezmoi source-path)"
+
+  ensure_git_identity "$source_dir"
+
+  git -C "$source_dir" add -A
+
+  if [[ -z "$(git -C "$source_dir" status --porcelain)" ]]; then
+    log_info "Nothing new to commit in the dotfiles repo."
+    return 0
+  fi
+
+  git -C "$source_dir" commit -m "Add initial dotfiles"
+  DOTFILES_COMMITTED=true
+  log_info "Committed initial dotfiles."
+
+  local remote_url
+  if ! remote_url="$(git -C "$source_dir" remote get-url origin 2>/dev/null)"; then
+    log_info "No 'origin' remote configured for the dotfiles repo; commit is local-only."
+    return 0
+  fi
+
+  local push_answer
+  read -r -p "Push the initial dotfiles commit to $remote_url now? [y/N] " push_answer
+  if [[ ! "$push_answer" =~ ^[Yy] ]]; then
+    log_info "Skipping push."
+    return 0
+  fi
+
+  local branch
+  branch="$(git -C "$source_dir" branch --show-current)"
+  if [[ -z "$branch" ]]; then
+    die "Could not determine the current branch in the dotfiles repo."
+  fi
+
+  if ! git -C "$source_dir" push -u origin "$branch"; then
+    die "Dotfiles were committed locally, but the push to $remote_url failed. Resolve the error above, then push manually with: git -C \"$source_dir\" push"
+  fi
+
+  DOTFILES_PUSHED=true
+  log_info "Pushed initial dotfiles commit to $remote_url."
+}
+
+run_chezmoi_init() {
+  local git_origin="$1"
+  local applied=false
+
+  if [[ -n "$git_origin" ]]; then
+    local apply_answer
+    read -r -p "Run 'chezmoi init --apply $git_origin' now? This may overwrite existing files in \$HOME. [y/N] " apply_answer
+    if [[ "$apply_answer" =~ ^[Yy] ]]; then
+      chezmoi init --apply "$git_origin"
+      applied=true
+    else
+      chezmoi init "$git_origin"
+    fi
+  else
+    chezmoi init
+  fi
+
+  printf '%s\n' "$applied"
 }
 
 print_summary() {
@@ -304,10 +497,33 @@ print_summary() {
     echo "  chezmoi apply    # apply the dotfiles to \$HOME"
     echo "  chezmoi cd       # open a shell in the chezmoi source directory"
   fi
+
+  echo
+  if [[ ${#ADDED_DOTFILES[@]} -gt 0 ]]; then
+    echo "Added ${#ADDED_DOTFILES[@]} common dotfile path(s) to chezmoi:"
+    local path
+    for path in "${ADDED_DOTFILES[@]}"; do
+      echo "  $path"
+    done
+  else
+    echo "No new common dotfiles were added (none found on this machine, or all already managed)."
+  fi
+
+  if [[ "$DOTFILES_COMMITTED" == true ]]; then
+    echo "Committed the initial dotfiles to the chezmoi source repo."
+    if [[ "$DOTFILES_PUSHED" == true ]]; then
+      echo "Pushed that commit to origin."
+    else
+      echo "That commit was not pushed (declined, or no origin remote configured)."
+    fi
+  else
+    echo "No new commit was made in the dotfiles repo (nothing to commit)."
+  fi
 }
 
 main() {
   detect_os
+  detect_readonly_root
   detect_package_manager
 
   export PATH="$HOME/.local/bin:$PATH"
@@ -323,31 +539,24 @@ main() {
     setup_ssh_key
   fi
 
+  local do_init=true
   if is_chezmoi_initialized; then
     log_warn "chezmoi already appears to be initialized (source directory exists)."
     local reinit_answer
     read -r -p "Run chezmoi init again anyway? [y/N] " reinit_answer
     if [[ ! "$reinit_answer" =~ ^[Yy] ]]; then
       log_info "Skipping chezmoi init."
-      print_summary "$git_origin" false
-      return 0
+      do_init=false
     fi
   fi
 
   local applied=false
-  if [[ -n "$git_origin" ]]; then
-    local apply_answer
-    read -r -p "Run 'chezmoi init --apply $git_origin' now? This may overwrite existing files in \$HOME. [y/N] " apply_answer
-    if [[ "$apply_answer" =~ ^[Yy] ]]; then
-      chezmoi init --apply "$git_origin"
-      applied=true
-    else
-      chezmoi init "$git_origin"
-    fi
-  else
-    chezmoi init
+  if [[ "$do_init" == true ]]; then
+    applied="$(run_chezmoi_init "$git_origin")"
   fi
 
+  add_common_dotfiles
+  commit_and_push_dotfiles
   print_summary "$git_origin" "$applied"
 }
 
