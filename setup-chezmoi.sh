@@ -36,13 +36,22 @@ DOTFILE_CANDIDATES=(
   "$HOME/.wgetrc"
   "$HOME/.config/MangoHud/MangoHud.conf"
   "$HOME/.config/lutris/lutris.conf"
+  "$HOME/.config/scummvm/scummvm.ini"
+  "$HOME/.scummvmrc"
+  "$HOME/.config/scummvm-nightly/scummvm.ini"
+  "$HOME/.var/app/org.scummvm.ScummVM/config/scummvm/scummvm.ini"
+  "$HOME/.config/retroarch/retroarch.cfg"
   "$HOME/.config/starship.toml"
+  "$HOME/.config/topgrade.toml"
   "$HOME/.ssh/config"
 )
 
 ADDED_DOTFILES=()
 DOTFILES_COMMITTED=false
 DOTFILES_PUSHED=false
+TOPGRADE_CONFIGURED=false
+
+TOML_LINES=()
 
 log_info() { printf '[INFO] %s\n' "$*" >&2; }
 log_warn() { printf '[WARN] %s\n' "$*" >&2; }
@@ -458,6 +467,175 @@ commit_and_push_dotfiles() {
   log_info "Pushed initial dotfiles commit to $remote_url."
 }
 
+find_toml_section_header_index() {
+  local section="$1" i
+  for i in "${!TOML_LINES[@]}"; do
+    if [[ "${TOML_LINES[$i]}" =~ ^[[:space:]]*\[${section}\][[:space:]]*$ ]]; then
+      printf '%s\n' "$i"
+      return 0
+    fi
+  done
+  return 1
+}
+
+find_toml_next_header_index() {
+  local start_idx="$1" i
+  local n="${#TOML_LINES[@]}"
+  for ((i = start_idx + 1; i < n; i++)); do
+    if [[ "${TOML_LINES[$i]}" =~ ^[[:space:]]*\[.+\][[:space:]]*$ ]]; then
+      printf '%s\n' "$i"
+      return 0
+    fi
+  done
+  printf '%s\n' "$n"
+  return 0
+}
+
+insert_toml_line_in_section() {
+  local section="$1" new_line="$2"
+  local start_idx end_idx
+  if ! start_idx="$(find_toml_section_header_index "$section")"; then
+    return 1
+  fi
+  end_idx="$(find_toml_next_header_index "$start_idx")"
+  TOML_LINES=("${TOML_LINES[@]:0:end_idx}" "$new_line" "${TOML_LINES[@]:end_idx}")
+  return 0
+}
+
+append_toml_section() {
+  local header="$1"
+  shift
+  local n="${#TOML_LINES[@]}"
+  if (( n > 0 )) && [[ -n "${TOML_LINES[$((n-1))]}" ]]; then
+    TOML_LINES+=("")
+  fi
+  TOML_LINES+=("$header")
+  TOML_LINES+=("$@")
+}
+
+process_topgrade_misc_section() {
+  local start_idx end_idx i line
+
+  if ! start_idx="$(find_toml_section_header_index "misc")"; then
+    append_toml_section "[misc]" 'disable = ["chezmoi"]'
+    return 0
+  fi
+
+  end_idx="$(find_toml_next_header_index "$start_idx")"
+
+  local disable_idx=-1
+  for ((i = start_idx + 1; i < end_idx; i++)); do
+    if [[ "${TOML_LINES[$i]}" =~ ^[[:space:]]*disable[[:space:]]*= ]]; then
+      disable_idx=$i
+      break
+    fi
+  done
+
+  if (( disable_idx == -1 )); then
+    TOML_LINES=("${TOML_LINES[@]:0:end_idx}" 'disable = ["chezmoi"]' "${TOML_LINES[@]:end_idx}")
+    return 0
+  fi
+
+  line="${TOML_LINES[$disable_idx]}"
+
+  if [[ ! "$line" =~ ^[[:space:]]*disable[[:space:]]*=[[:space:]]*\[ ]]; then
+    return 1
+  fi
+
+  if [[ ! "$line" =~ ^([[:space:]]*disable[[:space:]]*=[[:space:]]*)\[([^]]*)\](.*)$ ]]; then
+    return 1
+  fi
+
+  local prefix="${BASH_REMATCH[1]}"
+  local contents="${BASH_REMATCH[2]}"
+  local suffix="${BASH_REMATCH[3]}"
+
+  if [[ "$contents" =~ (^|,)[[:space:]]*\"chezmoi\"[[:space:]]*(,|$) ]]; then
+    return 0
+  fi
+
+  local new_contents
+  if [[ "$contents" =~ ^[[:space:]]*$ ]]; then
+    new_contents='"chezmoi"'
+  else
+    local trimmed="${contents%"${contents##*[![:space:]]}"}"
+    new_contents="${trimmed}, \"chezmoi\""
+  fi
+
+  TOML_LINES[disable_idx]="${prefix}[${new_contents}]${suffix}"
+  return 0
+}
+
+transform_topgrade_toml() {
+  local in_file="$1" out_file="$2"
+  local chezmoi_push_line
+  chezmoi_push_line=$(cat <<'EOF'
+"Chezmoi Push" = '''chezmoi re-add && chezmoi git -- add -A && (chezmoi git -- diff --cached --quiet || chezmoi git -- commit -m "$(date '+%Y-%m-%d %H:%M:%S')") && chezmoi git -- push'''
+EOF
+)
+
+  TOML_LINES=()
+  mapfile -t TOML_LINES < "$in_file"
+
+  if ! process_topgrade_misc_section; then
+    return 1
+  fi
+
+  if find_toml_section_header_index "commands" >/dev/null; then
+    if ! insert_toml_line_in_section "commands" "$chezmoi_push_line"; then
+      return 1
+    fi
+  else
+    append_toml_section "[commands]" "$chezmoi_push_line"
+  fi
+
+  printf '%s\n' "${TOML_LINES[@]}" > "$out_file"
+  return 0
+}
+
+configure_topgrade_integration() {
+  TOPGRADE_CONFIGURED=false
+
+  if ! command -v topgrade >/dev/null 2>&1; then
+    return 0
+  fi
+
+  local toml="$HOME/.config/topgrade.toml"
+  if [[ ! -f "$toml" ]]; then
+    return 0
+  fi
+
+  if grep -Fq '"Chezmoi Push"' "$toml"; then
+    log_info "topgrade already has a \"Chezmoi Push\" command configured in $toml; skipping."
+    return 0
+  fi
+
+  log_info "Detected topgrade and $toml."
+  local answer
+  read -r -p "Add a \"Chezmoi Push\" custom command and disable topgrade's built-in chezmoi step in \$HOME/.config/topgrade.toml? [y/N] " answer
+  if [[ ! "$answer" =~ ^[Yy] ]]; then
+    log_info "Skipping topgrade integration."
+    return 0
+  fi
+
+  local backup
+  backup="${toml}.bak.$(date '+%Y%m%d%H%M%S')"
+  cp -p "$toml" "$backup"
+
+  local tmp
+  tmp="$(mktemp "${toml}.tmp.XXXXXX")"
+
+  if ! transform_topgrade_toml "$toml" "$tmp"; then
+    rm -f "$tmp"
+    die "The 'disable' array in $toml uses a form this script can't safely edit automatically (a multi-line array, or an unexpected structure). Please add \"chezmoi\" to it manually (and the \"Chezmoi Push\" entry under [commands], if that wasn't applied either). A backup of the original file was saved to $backup."
+  fi
+
+  chmod --reference="$toml" "$tmp" 2>/dev/null || true
+  mv "$tmp" "$toml"
+  TOPGRADE_CONFIGURED=true
+  log_info "Updated $toml to add the \"Chezmoi Push\" command and disable topgrade's built-in chezmoi step (backup: $backup)."
+}
+
 run_chezmoi_init() {
   local git_origin="$1"
   local applied=false
@@ -524,6 +702,10 @@ print_summary() {
   else
     echo "No new commit was made in the dotfiles repo (nothing to commit)."
   fi
+
+  if [[ "$TOPGRADE_CONFIGURED" == true ]]; then
+    echo "Configured topgrade's Chezmoi Push command."
+  fi
 }
 
 main() {
@@ -562,6 +744,7 @@ main() {
 
   add_common_dotfiles
   commit_and_push_dotfiles
+  configure_topgrade_integration
   print_summary "$git_origin" "$applied"
 }
 
