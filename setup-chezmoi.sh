@@ -32,10 +32,16 @@ DOTFILE_CANDIDATES=(
   "$HOME/.config/sway/config"
   "$HOME/.config/i3/config"
   "$HOME/.i3/config"
+  "$HOME/.config/gtk-3.0/settings.ini"
+  "$HOME/.config/gtk-4.0/settings.ini"
+  "$HOME/.config/mimeapps.list"
+  "$HOME/.config/user-dirs.dirs"
   "$HOME/.curlrc"
   "$HOME/.wgetrc"
   "$HOME/.config/MangoHud/MangoHud.conf"
   "$HOME/.config/lutris/lutris.conf"
+  "$HOME/.config/vkBasalt/vkBasalt.conf"
+  "$HOME/.config/glow/glow.yml"
   "$HOME/.config/scummvm/scummvm.ini"
   "$HOME/.scummvmrc"
   "$HOME/.config/scummvm-nightly/scummvm.ini"
@@ -50,6 +56,7 @@ ADDED_DOTFILES=()
 DOTFILES_COMMITTED=false
 DOTFILES_PUSHED=false
 TOPGRADE_CONFIGURED=false
+README_CREATED=false
 
 TOML_LINES=()
 
@@ -364,6 +371,58 @@ EOF
 
 is_chezmoi_initialized() {
   chezmoi source-path >/dev/null 2>&1
+}
+
+create_dotfiles_readme() {
+  README_CREATED=false
+
+  local source_dir
+  source_dir="$(chezmoi source-path)"
+
+  local readme_path="$source_dir/README.md"
+  if [[ -e "$readme_path" ]]; then
+    log_info "README.md already exists in the dotfiles repo at $readme_path; leaving it untouched."
+    return 0
+  fi
+
+  local -a dotfile_lines=()
+  local path display
+  for path in "${DOTFILE_CANDIDATES[@]}"; do
+    display="${path/#$HOME/\~}"
+    dotfile_lines+=("- \`$display\`")
+  done
+
+  {
+    cat <<'EOF'
+# Dotfiles
+
+This repository is managed by [chezmoi](https://www.chezmoi.io/) and was bootstrapped with [setup-chezmoi](https://github.com/Pat9496/setup-chezmoi).
+
+## Usage
+
+| Command | What it does |
+| --- | --- |
+| `chezmoi diff` | Preview what would change in `$HOME` |
+| `chezmoi apply` | Apply this repo's state to `$HOME` |
+| `chezmoi edit ~/.bashrc` | Edit a dotfile through chezmoi |
+| `chezmoi add ~/.some-file` | Start tracking a new dotfile |
+| `chezmoi cd` | Open a shell in this source directory |
+| `chezmoi update` | Pull the latest changes and apply them |
+
+## Dotfiles picked up automatically
+
+[setup-chezmoi.sh](https://github.com/Pat9496/setup-chezmoi) looks for these paths (if present on a machine and not already tracked) and adds them automatically:
+
+EOF
+    printf '%s\n' "${dotfile_lines[@]}"
+    cat <<'EOF'
+
+See the [setup-chezmoi README](https://github.com/Pat9496/setup-chezmoi#managed-dotfiles) for what each of these configures.
+EOF
+  } > "$readme_path"
+
+  README_CREATED=true
+  log_info "Created $readme_path."
 }
 
 add_common_dotfiles() {
@@ -706,6 +765,10 @@ print_summary() {
   if [[ "$TOPGRADE_CONFIGURED" == true ]]; then
     echo "Configured topgrade's Chezmoi Push command."
   fi
+
+  if [[ "$README_CREATED" == true ]]; then
+    echo "Created a README.md in the dotfiles repo explaining what it is and how it's used."
+  fi
 }
 
 main() {
@@ -742,6 +805,7 @@ main() {
     applied="$(run_chezmoi_init "$git_origin")"
   fi
 
+  create_dotfiles_readme
   add_common_dotfiles
   commit_and_push_dotfiles
   configure_topgrade_integration
