@@ -96,6 +96,7 @@ If present on your machine and not already tracked by chezmoi, the script adds t
 | `~/.var/app/org.scummvm.ScummVM/config/scummvm/scummvm.ini` | ScummVM settings (Flatpak install) |
 | `~/.config/retroarch/retroarch.cfg` | RetroArch emulator frontend settings — **check this file before pushing** if you've ever used the legacy RetroAchievements login: it can store `cheevos_username`/`cheevos_password` as plaintext |
 | `~/.config/starship.toml` | Starship cross-shell prompt |
+| `~/.config/yazi/yazi.toml` | Yazi terminal file manager settings |
 | `~/.config/topgrade.toml` | Topgrade (everything-updater) settings |
 | `~/.ssh/config` | SSH client host aliases and connection options — connection settings only, never key files |
 

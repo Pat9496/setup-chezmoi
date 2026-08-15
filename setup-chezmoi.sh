@@ -48,6 +48,7 @@ DOTFILE_CANDIDATES=(
   "$HOME/.var/app/org.scummvm.ScummVM/config/scummvm/scummvm.ini"
   "$HOME/.config/retroarch/retroarch.cfg"
   "$HOME/.config/starship.toml"
+  "$HOME/.config/yazi/yazi.toml"
   "$HOME/.config/topgrade.toml"
   "$HOME/.ssh/config"
 )
