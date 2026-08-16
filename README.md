@@ -71,32 +71,50 @@ If present on your machine and not already tracked by chezmoi, the script adds t
 | `~/.config/fish/config.fish` | Fish shell configuration |
 | `~/.inputrc` | Readline command-line editing behavior (used by bash and other readline-based tools) |
 | `~/.gitconfig`, `~/.gitignore_global` | Git identity, aliases, and global ignore rules |
+| `~/.config/git/config`, `~/.config/git/ignore` | Git identity, aliases, and global ignore rules (XDG config location, alternative to `~/.gitconfig`) |
 | `~/.vimrc` | Vim editor configuration |
 | `~/.config/nvim` | Neovim configuration (whole directory) |
+| `~/.config/helix/config.toml` | Helix editor configuration |
 | `~/.tmux.conf`, `~/.config/tmux/tmux.conf` | tmux terminal multiplexer configuration |
+| `~/.config/zellij/config.kdl` | Zellij terminal multiplexer configuration |
 | `~/.config/alacritty/alacritty.toml` | Alacritty terminal emulator |
 | `~/.config/kitty/kitty.conf` | Kitty terminal emulator |
 | `~/.config/wezterm/wezterm.lua` | WezTerm terminal emulator |
 | `~/.config/foot/foot.ini` | Foot terminal emulator (Wayland-native) |
 | `~/.Xresources` | X11 terminal/font/color resource settings |
+| `~/.xinitrc`, `~/.xprofile` | X11 session startup commands (startx / display manager login) |
 | `~/.screenrc` | GNU Screen terminal multiplexer configuration |
 | `~/.config/sway/config` | Sway (Wayland tiling compositor) configuration |
 | `~/.config/i3/config`, `~/.i3/config` | i3 (X11 tiling window manager) configuration |
+| `~/.config/hypr/hyprland.conf` | Hyprland (Wayland tiling compositor) configuration |
+| `~/.config/waybar/config`, `~/.config/waybar/config.jsonc` | Waybar (Wayland status bar) configuration |
+| `~/.config/rofi/config.rasi` | Rofi application launcher configuration |
+| `~/.config/dunst/dunstrc` | Dunst notification daemon configuration |
+| `~/.config/picom/picom.conf` | Picom (X11 compositor) configuration |
 | `~/.config/gtk-3.0/settings.ini`, `~/.config/gtk-4.0/settings.ini` | GTK app theming (dark mode, font, icon theme) |
 | `~/.config/mimeapps.list` | Default application associations |
 | `~/.config/user-dirs.dirs` | XDG user directory paths (Desktop, Downloads, etc.) |
 | `~/.curlrc` | Default options for curl |
 | `~/.wgetrc` | Default options for wget |
+| `~/.config/htop/htoprc` | htop process viewer configuration |
+| `~/.config/btop/btop.conf` | btop resource monitor configuration |
 | `~/.config/MangoHud/MangoHud.conf` | MangoHud performance/FPS overlay, common on gaming distros |
 | `~/.config/lutris/lutris.conf` | Lutris game manager settings |
 | `~/.config/vkBasalt/vkBasalt.conf` | vkBasalt Vulkan post-processing overlay |
+| `~/.config/gamemode.ini` | GameMode performance daemon settings |
 | `~/.config/glow/glow.yml` | Glow terminal markdown renderer settings |
+| `~/.config/lazygit/config.yml` | Lazygit terminal UI for git configuration |
+| `~/.tigrc` | tig (git TUI) configuration |
+| `~/.config/bat/config` | bat (`cat` replacement) configuration |
+| `~/.dircolors` | Custom `ls`/`dircolors` color scheme |
+| `~/.config/direnv/direnvrc` | direnv global configuration |
 | `~/.config/scummvm/scummvm.ini`, `~/.scummvmrc` | ScummVM adventure-game engine settings |
 | `~/.config/scummvm-nightly/scummvm.ini` | ScummVM nightly build settings (separate install, XDG config dir) |
 | `~/.var/app/org.scummvm.ScummVM/config/scummvm/scummvm.ini` | ScummVM settings (Flatpak install) |
 | `~/.config/retroarch/retroarch.cfg` | RetroArch emulator frontend settings — **check this file before pushing** if you've ever used the legacy RetroAchievements login: it can store `cheevos_username`/`cheevos_password` as plaintext |
 | `~/.config/starship.toml` | Starship cross-shell prompt |
 | `~/.config/yazi/yazi.toml` | Yazi terminal file manager settings |
+| `~/.config/lf/lfrc` | lf terminal file manager configuration |
 | `~/.config/topgrade.toml` | Topgrade (everything-updater) settings |
 | `~/.ssh/config` | SSH client host aliases and connection options — connection settings only, never key files |
 
