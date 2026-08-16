@@ -94,6 +94,7 @@ If present on your machine and not already tracked by chezmoi, the script adds t
 | `~/.config/gtk-3.0/settings.ini`, `~/.config/gtk-4.0/settings.ini` | GTK app theming (dark mode, font, icon theme) |
 | `~/.config/mimeapps.list` | Default application associations |
 | `~/.config/user-dirs.dirs` | XDG user directory paths (Desktop, Downloads, etc.) |
+| `~/.local/share/flatpak/overrides` | Flatpak per-app permission overrides (filesystem access, device access, D-Bus policy) — whole directory; some entries may reference disk mount labels specific to the machine they were created on |
 | `~/.curlrc` | Default options for curl |
 | `~/.wgetrc` | Default options for wget |
 | `~/.config/htop/htoprc` | htop process viewer configuration |
@@ -112,6 +113,11 @@ If present on your machine and not already tracked by chezmoi, the script adds t
 | `~/.config/scummvm-nightly/scummvm.ini` | ScummVM nightly build settings (separate install, XDG config dir) |
 | `~/.var/app/org.scummvm.ScummVM/config/scummvm/scummvm.ini` | ScummVM settings (Flatpak install) |
 | `~/.config/retroarch/retroarch.cfg` | RetroArch emulator frontend settings — **check this file before pushing** if you've ever used the legacy RetroAchievements login: it can store `cheevos_username`/`cheevos_password` as plaintext |
+| `~/.var/app/io.freetubeapp.FreeTube/config/FreeTube/settings.db` | FreeTube (Flatpak) app preferences — theme, playback defaults, UI toggles; includes window `bounds` (position/size), which may not suit syncing across machines with different displays |
+| `~/.var/app/io.freetubeapp.FreeTube/config/FreeTube/profiles.db` | FreeTube (Flatpak) subscription list (profiles and subscribed channels) |
+| `~/.var/app/tv.kodi.Kodi/data/userdata/guisettings.xml` | Kodi (Flatpak) media center preferences — skin, playback, subtitles, region, network settings |
+| `~/.var/app/tv.kodi.Kodi/data/userdata/keymaps` | Kodi (Flatpak) custom keybindings (whole directory) |
+| `~/.var/app/tv.kodi.Kodi/data/userdata/profiles.xml` | Kodi (Flatpak) user profiles — **check this file before pushing** if you've ever set a master lock code: it can store the lock code hash |
 | `~/.config/starship.toml` | Starship cross-shell prompt |
 | `~/.config/yazi/yazi.toml` | Yazi terminal file manager settings |
 | `~/.config/lf/lfrc` | lf terminal file manager configuration |
