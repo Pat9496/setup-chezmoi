@@ -8,6 +8,20 @@ A single bash script that bootstraps [chezmoi](https://www.chezmoi.io/) and its 
 
 It is desktop-environment-agnostic: everything happens at the CLI level, with no assumptions about GNOME, KDE, or any other DE.
 
+## Table of Contents
+
+- [Features](#features)
+- [Requirements](#requirements)
+- [Supported Distributions](#supported-distributions)
+- [Usage](#usage)
+- [How It Works](#how-it-works)
+- [Managed Dotfiles](#managed-dotfiles)
+- [Generated Dotfiles README](#generated-dotfiles-readme)
+- [Topgrade Integration](#topgrade-integration)
+- [Using chezmoi](#using-chezmoi)
+- [License](#license)
+- [Credits](#credits)
+
 ## Features
 
 - **Cross-distro detection** — identifies the host's package manager (`apt-get`, `dnf`, `rpm-ostree`, `pacman`, `zypper`, `apk`) via `/etc/os-release` and fails clearly instead of guessing on unsupported systems.
@@ -146,7 +160,7 @@ It's created only if no `README.md` already exists there — an existing one (yo
 disable = ["chezmoi"]
 ```
 
-This re-adds any changed dotfiles, commits them (only if something actually changed), and pushes — running as one of your topgrade steps instead of relying on you to remember to push manually. Topgrade's own built-in `chezmoi` step (which just runs `chezmoi update`) is disabled via `[misc]` `disable`, since this command supersedes it.
+This re-adds any changed dotfiles, commits them (only if something actually changed), and pushes — running as one of your topgrade steps instead of relying on you to remember to push manually. Topgrade's built-in `chezmoi` step runs only `chezmoi update` (pulls and applies remote changes, but does not commit or push local edits). Without this custom command, you would need to remember to commit and push your changes manually. The built-in step is disabled via `[misc]` `disable` to avoid redundancy and ensure only the custom command handles the complete workflow: re-add, commit if needed, and push.
 
 The script only adds this if it's not already present (safe to re-run), always backs up `topgrade.toml` first (`topgrade.toml.bak.<timestamp>`), and only writes changes if it can confidently locate/edit the right spot — if your `disable` array spans multiple lines or has an unexpected shape, it leaves the file untouched and tells you to add the two entries by hand.
 
