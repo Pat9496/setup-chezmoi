@@ -8,6 +8,8 @@ A single bash script that bootstraps [chezmoi](https://www.chezmoi.io/) and its 
 
 It is desktop-environment-agnostic: everything happens at the CLI level, with no assumptions about GNOME, KDE, or any other DE.
 
+[Deutsche Version](README.de.md)
+
 ## Table of Contents
 
 - [Features](#features)
