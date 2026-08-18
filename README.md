@@ -137,6 +137,10 @@ If present on your machine and not already tracked by chezmoi, the script adds t
 | `~/.config/starship.toml` | Starship cross-shell prompt |
 | `~/.config/yazi/yazi.toml` | Yazi terminal file manager settings |
 | `~/.config/lf/lfrc` | lf terminal file manager configuration |
+| `~/.config/Thunar/accels.scm` | Thunar (XFCE file manager) custom keyboard shortcuts |
+| `~/.config/Thunar/uca.xml` | Thunar custom actions (user-defined context-menu commands) |
+| `~/.config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml` | Thunar preferences (view mode, sidebar, columns, sorting) via xfconf |
+| `~/.config/gtk-3.0/bookmarks` | Sidebar bookmarks shared by Thunar and other GTK file dialogs — stores absolute paths under `$HOME`, so entries may not resolve if the username differs across machines; **check this file before pushing** if you've ever bookmarked a network share (`smb://`, `sftp://`, `ftp://`), since the URI can embed a plaintext username/password |
 | `~/.config/topgrade.toml` | Topgrade (everything-updater) settings |
 | `~/.ssh/config` | SSH client host aliases and connection options — connection settings only, never key files |
 

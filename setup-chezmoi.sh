@@ -76,6 +76,10 @@ DOTFILE_CANDIDATES=(
   "$HOME/.config/starship.toml"
   "$HOME/.config/yazi/yazi.toml"
   "$HOME/.config/lf/lfrc"
+  "$HOME/.config/Thunar/accels.scm"
+  "$HOME/.config/Thunar/uca.xml"
+  "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml"
+  "$HOME/.config/gtk-3.0/bookmarks"
   "$HOME/.config/topgrade.toml"
   "$HOME/.ssh/config"
 )
