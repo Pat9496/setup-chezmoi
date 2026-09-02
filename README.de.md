@@ -2,7 +2,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Shell: Bash](https://img.shields.io/badge/Shell-Bash-4EAA25?logo=gnubash&logoColor=white)](setup-chezmoi.sh)
-[![ShellCheck](https://img.shields.io/badge/ShellCheck-passing-brightgreen)](setup-chezmoi.sh)
 
 Ein einzelnes Bash-Skript, das [chezmoi](https://www.chezmoi.io/) und dessen Voraussetzungen auf einer beliebigen Linux-Maschine — einschließlich unveränderlicher/atomarer Distributionen wie Fedora Silverblue, Fedora Kinoite und Bazzite — bootstrapped und hilft, es über SSH mit dem Dotfiles-Repository zu verbinden.
 
@@ -137,6 +136,10 @@ Falls auf dem System vorhanden und nicht bereits von chezmoi nachverfolgt, fügt
 | `~/.config/starship.toml` | Starship-Cross-Shell-Prompt |
 | `~/.config/yazi/yazi.toml` | Yazi-Terminal-Dateimanager-Einstellungen |
 | `~/.config/lf/lfrc` | lf-Terminal-Dateimanager-Konfiguration |
+| `~/.config/Thunar/accels.scm` | Thunar (XFCE-Dateimanager)-benutzerdefinierte Tastenkombinationen |
+| `~/.config/Thunar/uca.xml` | Thunar-benutzerdefinierte Aktionen (Befehle für benutzerdefinierten Kontextmenü) |
+| `~/.config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml` | Thunar-Einstellungen (Ansichtsmodus, Seitenleiste, Spalten, Sortierung) über xfconf |
+| `~/.config/gtk-3.0/bookmarks` | Seitenleisten-Lesezeichen geteilt zwischen Thunar und anderen GTK-Dateidialogen — speichert absolute Pfade unter `$HOME`, sodass Einträge möglicherweise nicht aufgelöst werden, wenn der Benutzername auf verschiedenen Maschinen unterschiedlich ist; **diese Datei vor dem Pushen überprüfen**, falls je eine Netzwerkfreigabe (`smb://`, `sftp://`, `ftp://`) gekennzeichnet wurde, da der URI einen Klartext-Benutzernamen/-Passwort enthalten kann |
 | `~/.config/topgrade.toml` | Topgrade (alles-Updater)-Einstellungen |
 | `~/.ssh/config` | SSH-Client-Host-Aliase und Verbindungsoptionen — nur Verbindungseinstellungen, nie Schlüsseldateien |
 

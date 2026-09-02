@@ -2,7 +2,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Shell: Bash](https://img.shields.io/badge/Shell-Bash-4EAA25?logo=gnubash&logoColor=white)](setup-chezmoi.sh)
-[![ShellCheck](https://img.shields.io/badge/ShellCheck-passing-brightgreen)](setup-chezmoi.sh)
 
 A single bash script that bootstraps [chezmoi](https://www.chezmoi.io/) and its prerequisites on any Linux machine — including immutable/atomic distributions such as Fedora Silverblue, Fedora Kinoite, and Bazzite — and helps you connect it to your dotfiles repository over SSH.
 
