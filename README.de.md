@@ -77,7 +77,7 @@ cd setup-chezmoi
 
 ## Verwaltete Dotfiles
 
-Falls auf dem System vorhanden und nicht bereits von chezmoi nachverfolgt, fügt das Skript diese Dateien/Verzeichnisse automatisch hinzu — nichts außerhalb dieser Liste wird jemals berührt, und nichts, was Zugangsdaten enthalten kann (z.B. `.netrc`, Cloud-/API-Credentials-Dateien, private SSH-Schlüssel), wird jemals hinzugefügt:
+Falls auf dem System vorhanden und nicht bereits von chezmoi nachverfolgt, fügt das Skript diese Dateien/Verzeichnisse automatisch hinzu — nichts außerhalb dieser Liste wird jemals berührt. Dateien zum reinen Speichern von Zugangsdaten (z.B. `.netrc`, Cloud-/API-Credentials-Dateien, private SSH-Schlüssel) werden nie hinzugefügt; einige Konfigurationseinträge können Zugangsdaten oder maschinenspezifische Inhalte enthalten – Hinweise dazu in der Tabelle:
 
 | Pfad(e) | Was es konfiguriert |
 | --- | --- |
@@ -99,12 +99,17 @@ Falls auf dem System vorhanden und nicht bereits von chezmoi nachverfolgt, fügt
 | `~/.Xresources` | X11-Terminal-/Font-/Farbressourcen-Einstellungen |
 | `~/.xinitrc`, `~/.xprofile` | X11-Session-Startup-Befehle (startx / Display-Manager-Login) |
 | `~/.screenrc` | GNU Screen-Terminal-Multiplexer-Konfiguration |
-| `~/.config/sway/config` | Sway (Wayland-Tiling-Compositor)-Konfiguration |
+| `~/.config/sway/config`, `~/.sway/config`, `~/.config/sway/config.d`, `~/.config/swaylock/config`, `~/.config/swayidle/config`, `~/.config/swaynag/config`, `~/.config/kanshi/config` | Sway (Wayland-Tiling-Compositor)-Konfiguration — `~/.sway/config` ist ein Legacy-Pfad, den sway zuerst prüft; swaylock Bildschirmsperre, swayidle Idle- und Sleep-Handling, swaynag Bestätigungs-/Meldungsleiste, kanshi dynamische Output-/Monitorprofile; `~/.config/sway/config.d` ist ein ganzes Verzeichnis mit include'd Konfigurationsschnipseln — **diese Schnipsel vor dem Pushen überprüfen** auf Zugangsdaten oder maschinenspezifische Inhalte |
 | `~/.config/i3/config`, `~/.i3/config` | i3 (X11-Tiling-Fenster-Manager)-Konfiguration |
 | `~/.config/hypr/hyprland.conf` | Hyprland (Wayland-Tiling-Compositor)-Konfiguration |
-| `~/.config/waybar/config`, `~/.config/waybar/config.jsonc` | Waybar (Wayland-Statusleiste)-Konfiguration |
+| `~/.config/waybar/config`, `~/.config/waybar/config.jsonc`, `~/.config/waybar/style.css` | Waybar (Wayland-Statusleiste)-Konfiguration und CSS-Styling |
 | `~/.config/rofi/config.rasi` | Rofi-Anwendungs-Launcher-Konfiguration |
+| `~/.config/fuzzel/fuzzel.ini` | Fuzzel-Launcher-Konfiguration |
+| `~/.config/wofi/config`, `~/.config/wofi/style.css` | Wofi-Launcher-Konfiguration und CSS |
+| `~/.config/wlogout/layout`, `~/.config/wlogout/style.css` | Wlogout-Logout-Menü Layout und CSS |
 | `~/.config/dunst/dunstrc` | Dunst-Benachrichtigungs-Daemon-Konfiguration |
+| `~/.config/mako/config` | Mako-Notification-Daemon-Konfiguration |
+| `~/.config/swaync/config.json`, `~/.config/swaync/style.css` | SwayNotificationCenter-Konfiguration und CSS |
 | `~/.config/picom/picom.conf` | Picom (X11-Compositor)-Konfiguration |
 | `~/.config/gtk-3.0/settings.ini`, `~/.config/gtk-4.0/settings.ini` | GTK-App-Design (Dark Mode, Schriftart, Icon-Design) |
 | `~/.config/mimeapps.list` | Standardanwendungszuordnungen |

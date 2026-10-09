@@ -36,13 +36,29 @@ DOTFILE_CANDIDATES=(
   "$HOME/.xprofile"
   "$HOME/.screenrc"
   "$HOME/.config/sway/config"
+  "$HOME/.sway/config"
+  # Whole directory: review included snippets for credentials before pushing
+  "$HOME/.config/sway/config.d"
+  "$HOME/.config/swaylock/config"
+  "$HOME/.config/swayidle/config"
+  "$HOME/.config/swaynag/config"
+  "$HOME/.config/kanshi/config"
   "$HOME/.config/i3/config"
   "$HOME/.i3/config"
   "$HOME/.config/hypr/hyprland.conf"
   "$HOME/.config/waybar/config"
   "$HOME/.config/waybar/config.jsonc"
+  "$HOME/.config/waybar/style.css"
   "$HOME/.config/rofi/config.rasi"
+  "$HOME/.config/fuzzel/fuzzel.ini"
+  "$HOME/.config/wofi/config"
+  "$HOME/.config/wofi/style.css"
+  "$HOME/.config/wlogout/layout"
+  "$HOME/.config/wlogout/style.css"
   "$HOME/.config/dunst/dunstrc"
+  "$HOME/.config/mako/config"
+  "$HOME/.config/swaync/config.json"
+  "$HOME/.config/swaync/style.css"
   "$HOME/.config/picom/picom.conf"
   "$HOME/.config/gtk-3.0/settings.ini"
   "$HOME/.config/gtk-4.0/settings.ini"
@@ -735,13 +751,13 @@ run_chezmoi_init() {
     local apply_answer
     read -r -p "Run 'chezmoi init --apply $git_origin' now? This may overwrite existing files in \$HOME. [y/N] " apply_answer
     if [[ "$apply_answer" =~ ^[Yy] ]]; then
-      chezmoi init --apply "$git_origin"
+      chezmoi init --apply "$git_origin" >&2
       applied=true
     else
-      chezmoi init "$git_origin"
+      chezmoi init "$git_origin" >&2
     fi
   else
-    chezmoi init
+    chezmoi init >&2
   fi
 
   printf '%s\n' "$applied"

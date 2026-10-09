@@ -77,7 +77,7 @@ cd setup-chezmoi
 
 ## Managed Dotfiles
 
-If present on your machine and not already tracked by chezmoi, the script adds these files/directories automatically — nothing outside this list is ever touched, and nothing that can hold credentials (e.g. `.netrc`, cloud/API credential files, private SSH keys) is ever added:
+If present on your machine and not already tracked by chezmoi, the script adds these files/directories automatically — nothing outside this list is ever touched, and nothing designed to hold credentials (e.g. `.netrc`, cloud/API credential files, private SSH keys) is ever added. Some configuration directories may contain machine-specific or sensitive content and should be reviewed before pushing:
 
 | Path(s) | What it configures |
 | --- | --- |
@@ -99,12 +99,21 @@ If present on your machine and not already tracked by chezmoi, the script adds t
 | `~/.Xresources` | X11 terminal/font/color resource settings |
 | `~/.xinitrc`, `~/.xprofile` | X11 session startup commands (startx / display manager login) |
 | `~/.screenrc` | GNU Screen terminal multiplexer configuration |
-| `~/.config/sway/config` | Sway (Wayland tiling compositor) configuration |
+| `~/.config/sway/config`, `~/.sway/config` (legacy), `~/.config/sway/config.d` | Sway (Wayland tiling compositor) configuration; `~/.config/sway/config.d` is a whole directory of snippets — **review snippets for credentials or machine-specific content before pushing** |
+| `~/.config/swaylock/config` | Swaylock screen locker configuration |
+| `~/.config/swayidle/config` | Swayidle idle and sleep handling configuration |
+| `~/.config/swaynag/config` | Swaynag confirmation and message bar configuration |
+| `~/.config/kanshi/config` | Kanshi dynamic output/monitor profiles for Sway configuration |
 | `~/.config/i3/config`, `~/.i3/config` | i3 (X11 tiling window manager) configuration |
 | `~/.config/hypr/hyprland.conf` | Hyprland (Wayland tiling compositor) configuration |
-| `~/.config/waybar/config`, `~/.config/waybar/config.jsonc` | Waybar (Wayland status bar) configuration |
+| `~/.config/waybar/config`, `~/.config/waybar/config.jsonc`, `~/.config/waybar/style.css` | Waybar (Wayland status bar) configuration and CSS styling |
 | `~/.config/rofi/config.rasi` | Rofi application launcher configuration |
+| `~/.config/fuzzel/fuzzel.ini` | Fuzzel application launcher configuration |
+| `~/.config/wofi/config`, `~/.config/wofi/style.css` | Wofi application launcher configuration and CSS styling |
+| `~/.config/wlogout/layout`, `~/.config/wlogout/style.css` | Wlogout logout menu layout and CSS styling |
 | `~/.config/dunst/dunstrc` | Dunst notification daemon configuration |
+| `~/.config/mako/config` | Mako notification daemon configuration |
+| `~/.config/swaync/config.json`, `~/.config/swaync/style.css` | SwayNotificationCenter notification daemon configuration and CSS styling |
 | `~/.config/picom/picom.conf` | Picom (X11 compositor) configuration |
 | `~/.config/gtk-3.0/settings.ini`, `~/.config/gtk-4.0/settings.ini` | GTK app theming (dark mode, font, icon theme) |
 | `~/.config/mimeapps.list` | Default application associations |
