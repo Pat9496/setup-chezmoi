@@ -99,7 +99,8 @@ If present on your machine and not already tracked by chezmoi, the script adds t
 | `~/.Xresources` | X11 terminal/font/color resource settings |
 | `~/.xinitrc`, `~/.xprofile` | X11 session startup commands (startx / display manager login) |
 | `~/.screenrc` | GNU Screen terminal multiplexer configuration |
-| `~/.config/sway/config`, `~/.sway/config` (legacy), `~/.config/sway/config.d` | Sway (Wayland tiling compositor) configuration; `~/.config/sway/config.d` is a whole directory of snippets — **review snippets for credentials or machine-specific content before pushing** |
+| `~/.config/sway/*` | Sway (Wayland tiling compositor) configuration and helper files (glob); all non-hidden files and subdirectories in that directory are picked up automatically — examples include: `config`, `config.d/`, `idle.sh`, `lock.sh`, `outputs.sh`, `wallpaper.sh`, `focus-toggle.sh`, `focus-or-launch.sh`, `rdm-launch.sh`, `workspace8-pwas.sh`, `vpn-status.sh`, `vpn-toggle.sh`, `sudo-askpass.sh`, `environment`, `theme.conf`, `background.png`, `rectangle.png`. Any new files added to this directory in future are picked up automatically. **Review the helper scripts (in particular `vpn-status.sh`, `vpn-toggle.sh`, `sudo-askpass.sh` and `rdm-launch.sh`) and config.d snippets for credentials and internal hostnames before pushing — they are added automatically.** Move any file that contains a secret out of `~/.config/sway/` or exclude it, and use an encrypted or template-based approach for it instead. Binary files (images) in this directory add binary content to the repository. |
+| `~/.sway/config` | Sway configuration (legacy alternative location) |
 | `~/.config/swaylock/config` | Swaylock screen locker configuration |
 | `~/.config/swayidle/config` | Swayidle idle and sleep handling configuration |
 | `~/.config/swaynag/config` | Swaynag confirmation and message bar configuration |
@@ -151,6 +152,18 @@ If present on your machine and not already tracked by chezmoi, the script adds t
 | `~/.config/gtk-3.0/bookmarks` | Sidebar bookmarks shared by Thunar and other GTK file dialogs — stores absolute paths under `$HOME`, so entries may not resolve if the username differs across machines; **check this file before pushing** if you've ever bookmarked a network share (`smb://`, `sftp://`, `ftp://`), since the URI can embed a plaintext username/password |
 | `~/.config/topgrade.toml` | Topgrade (everything-updater) settings |
 | `~/.ssh/config` | SSH client host aliases and connection options — connection settings only, never key files |
+
+### Dotfile discovery mechanism
+
+Entries in the [Managed Dotfiles](#managed-dotfiles) list that end in `/*` are glob patterns. When the script runs, it expands these patterns to match every non-hidden file and subdirectory in that directory at that moment — so any future files added to the directory are picked up on the next script run without modifying the script itself. For example, `~/.config/sway/*` matches everything in `~/.config/sway/` directly, including new helper scripts or configuration snippets added later.
+
+The script skips any file or directory matching one of the following patterns, and skips any directory that contains a matching file at any depth:
+
+- `CLAUDE.md`, `AGENT.md`, `AGENTS.md`, `GEMINI.md` — AI instruction files
+- `.claude` — AI cache directory
+- `*.pem`, `*.key` — Private keys and certificates
+
+This prevents credentials, private keys, and AI-agent instructions from being added to your dotfiles repository.
 
 ## Generated Dotfiles README
 

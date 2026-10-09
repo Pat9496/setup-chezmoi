@@ -35,10 +35,11 @@ DOTFILE_CANDIDATES=(
   "$HOME/.xinitrc"
   "$HOME/.xprofile"
   "$HOME/.screenrc"
-  "$HOME/.config/sway/config"
+  # Glob: every non-hidden entry of the directory (config, config.d, helper scripts, theme and wallpaper files);
+  # skips DOTFILE_EXCLUDE_PATTERNS. Review config.d snippets and helper scripts (vpn-*.sh, sudo-askpass.sh,
+  # rdm-launch.sh) for credentials and internal hostnames before pushing
+  "$HOME/.config/sway/*"
   "$HOME/.sway/config"
-  # Whole directory: review included snippets for credentials before pushing
-  "$HOME/.config/sway/config.d"
   "$HOME/.config/swaylock/config"
   "$HOME/.config/swayidle/config"
   "$HOME/.config/swaynag/config"
@@ -100,6 +101,16 @@ DOTFILE_CANDIDATES=(
   "$HOME/.ssh/config"
 )
 
+DOTFILE_EXCLUDE_PATTERNS=(
+  "CLAUDE.md"
+  "AGENT.md"
+  "AGENTS.md"
+  "GEMINI.md"
+  ".claude"
+  "*.pem"
+  "*.key"
+)
+
 ADDED_DOTFILES=()
 DOTFILES_COMMITTED=false
 DOTFILES_PUSHED=false
@@ -121,6 +132,68 @@ array_contains() {
     [[ "$item" == "$needle" ]] && return 0
   done
   return 1
+}
+
+is_glob_candidate() {
+  [[ "$1" == */\* ]]
+}
+
+is_excluded_dotfile_name() {
+  local name="$1"
+  local pattern
+  for pattern in "${DOTFILE_EXCLUDE_PATTERNS[@]}"; do
+    # shellcheck disable=SC2053
+    [[ "$name" == $pattern ]] && return 0
+  done
+  return 1
+}
+
+contains_excluded_dotfile() {
+  local path="$1"
+  local entry
+  [[ -d "$path" ]] || return 1
+  while IFS= read -r -d '' entry; do
+    if is_excluded_dotfile_name "${entry##*/}"; then
+      return 0
+    fi
+  done < <(find "$path" -mindepth 1 -print0 2>/dev/null)
+  return 1
+}
+
+resolve_dotfile_candidates() {
+  local candidate dir match
+  local -a resolved=()
+
+  for candidate in "${DOTFILE_CANDIDATES[@]}"; do
+    if ! is_glob_candidate "$candidate"; then
+      if ! array_contains "$candidate" "${resolved[@]}"; then
+        resolved+=("$candidate")
+      fi
+      continue
+    fi
+
+    dir="${candidate%/\*}"
+    [[ -d "$dir" ]] || continue
+
+    for match in "$dir"/*; do
+      [[ -e "$match" ]] || continue
+      if is_excluded_dotfile_name "${match##*/}"; then
+        log_warn "Skipping excluded path: $match"
+        continue
+      fi
+      if contains_excluded_dotfile "$match"; then
+        log_warn "Skipping $match because it contains an excluded file (AI instruction file or private key)."
+        continue
+      fi
+      if ! array_contains "$match" "${resolved[@]}"; then
+        resolved+=("$match")
+      fi
+    done
+  done
+
+  if [[ ${#resolved[@]} -gt 0 ]]; then
+    printf '%s\n' "${resolved[@]}"
+  fi
 }
 
 detect_os() {
@@ -435,9 +508,18 @@ create_dotfiles_readme() {
 
   local -a dotfile_lines=()
   local path display
+  local has_glob=false
   for path in "${DOTFILE_CANDIDATES[@]}"; do
     display="${path/#$HOME/\~}"
     dotfile_lines+=("- \`$display\`")
+    if is_glob_candidate "$path"; then
+      has_glob=true
+    fi
+  done
+
+  local pattern exclude_list=""
+  for pattern in "${DOTFILE_EXCLUDE_PATTERNS[@]}"; do
+    exclude_list+="${exclude_list:+, }\`$pattern\`"
   done
 
   {
@@ -463,6 +545,9 @@ This repository is managed by [chezmoi](https://www.chezmoi.io/) and was bootstr
 
 EOF
     printf '%s\n' "${dotfile_lines[@]}"
+    if [[ "$has_glob" == true ]]; then
+      printf '\nEntries ending in %s match every non-hidden file and directory in that directory at the time the script runs, so new files there are picked up too. Matches named like one of these patterns, and directories containing such a file, are skipped: %s.\n' "\`/*\`" "$exclude_list"
+    fi
     cat <<'EOF'
 
 See the [setup-chezmoi README](https://github.com/Pat9496/setup-chezmoi#managed-dotfiles) for what each of these configures.
@@ -483,8 +568,15 @@ add_common_dotfiles() {
     mapfile -t managed <<< "$managed_raw"
   fi
 
+  local -a candidates=()
+  local candidates_raw
+  candidates_raw="$(resolve_dotfile_candidates)"
+  if [[ -n "$candidates_raw" ]]; then
+    mapfile -t candidates <<< "$candidates_raw"
+  fi
+
   local path
-  for path in "${DOTFILE_CANDIDATES[@]}"; do
+  for path in "${candidates[@]}"; do
     if [[ ! -e "$path" ]]; then
       continue
     fi

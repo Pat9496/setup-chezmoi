@@ -77,7 +77,9 @@ cd setup-chezmoi
 
 ## Verwaltete Dotfiles
 
-Falls auf dem System vorhanden und nicht bereits von chezmoi nachverfolgt, fügt das Skript diese Dateien/Verzeichnisse automatisch hinzu — nichts außerhalb dieser Liste wird jemals berührt. Dateien zum reinen Speichern von Zugangsdaten (z.B. `.netrc`, Cloud-/API-Credentials-Dateien, private SSH-Schlüssel) werden nie hinzugefügt; einige Konfigurationseinträge können Zugangsdaten oder maschinenspezifische Inhalte enthalten – Hinweise dazu in der Tabelle:
+Falls auf dem System vorhanden und nicht bereits von chezmoi nachverfolgt, fügt das Skript diese Dateien/Verzeichnisse automatisch hinzu — nichts außerhalb dieser Liste wird jemals berührt. Dateien zum reinen Speichern von Zugangsdaten (z.B. `.netrc`, Cloud-/API-Credentials-Dateien, private SSH-Schlüssel) werden nie hinzugefügt; einige Konfigurationseinträge können Zugangsdaten oder maschinenspezifische Inhalte enthalten – Hinweise dazu in der Tabelle.
+
+Einige Einträge verwenden einen Glob-Platzhalter (`/*`), um mehrere Dateien oder ein ganzes Verzeichnis in einem Eintrag zu erfassen — zum Beispiel `~/.config/sway/*` erfasst alle nicht versteckten Dateien und Unterverzeichnisse unter `~/.config/sway/`. Solche Glob-Einträge werden zur Laufzeit erweitert; künftige Dateien werden automatisch einbezogen. Ausgeschlossene Dateien (z.B. AI-Anleitung-Dateien, private Schlüsseldateien) werden automatisch übersprungen, auch wenn sie in einem Glob-Verzeichnis liegen. Ausführbare Skripte werden von chezmoi automatisch erfasst, indem dem Dateinamen im Quellzustand das Präfix `executable_` vorangestellt wird.
 
 | Pfad(e) | Was es konfiguriert |
 | --- | --- |
@@ -99,7 +101,12 @@ Falls auf dem System vorhanden und nicht bereits von chezmoi nachverfolgt, fügt
 | `~/.Xresources` | X11-Terminal-/Font-/Farbressourcen-Einstellungen |
 | `~/.xinitrc`, `~/.xprofile` | X11-Session-Startup-Befehle (startx / Display-Manager-Login) |
 | `~/.screenrc` | GNU Screen-Terminal-Multiplexer-Konfiguration |
-| `~/.config/sway/config`, `~/.sway/config`, `~/.config/sway/config.d`, `~/.config/swaylock/config`, `~/.config/swayidle/config`, `~/.config/swaynag/config`, `~/.config/kanshi/config` | Sway (Wayland-Tiling-Compositor)-Konfiguration — `~/.sway/config` ist ein Legacy-Pfad, den sway zuerst prüft; swaylock Bildschirmsperre, swayidle Idle- und Sleep-Handling, swaynag Bestätigungs-/Meldungsleiste, kanshi dynamische Output-/Monitorprofile; `~/.config/sway/config.d` ist ein ganzes Verzeichnis mit include'd Konfigurationsschnipseln — **diese Schnipsel vor dem Pushen überprüfen** auf Zugangsdaten oder maschinenspezifische Inhalte |
+| `~/.config/sway/*` | Sway (Wayland-Tiling-Compositor)-Konfiguration und Hilfsdateien — der Glob `~/.config/sway/*` expandiert zur Laufzeit zu allen nicht versteckten Dateien und Unterverzeichnissen (z. B. `config`, `config.d/`, `idle.sh`, `lock.sh`, `outputs.sh`, `wallpaper.sh`, `focus-toggle.sh`, `focus-or-launch.sh`, `rdm-launch.sh`, `workspace8-pwas.sh`, `vpn-status.sh`, `vpn-toggle.sh`, `sudo-askpass.sh`, `environment`, `theme.conf`, `background.png`, `rectangle.png`). Künftige neue Dateien in diesem Verzeichnis werden automatisch erfasst. **Vor dem Push müssen die Hilfsskripte (`vpn-status.sh`, `vpn-toggle.sh`, `sudo-askpass.sh`, `rdm-launch.sh`) und `config.d`-Schnipsel auf Zugangsdaten und interne Hostnamen überprüft werden; sie werden automatisch hinzugefügt.** Binärdateien (Hintergrundbilder, Icons, Theme-Dateien) ergänzen das Repository um Binärdaten. |
+| `~/.sway/config` | Sway Legacy-Konfigurationspfad — sway prüft diesen Pfad zuerst, bevor es `~/.config/sway/config` prüft; weniger verbreitet als die XDG-Location. |
+| `~/.config/swaylock/config` | Swaylock (Wayland-Bildschirmsperre)-Konfiguration |
+| `~/.config/swayidle/config` | Swayidle (Wayland-Idle-Handling)-Konfiguration |
+| `~/.config/swaynag/config` | Swaynag (Wayland-Benachrichtigungs-/Bestätigungsleiste)-Konfiguration |
+| `~/.config/kanshi/config` | Kanshi (dynamische Output-/Monitorprofile)-Konfiguration |
 | `~/.config/i3/config`, `~/.i3/config` | i3 (X11-Tiling-Fenster-Manager)-Konfiguration |
 | `~/.config/hypr/hyprland.conf` | Hyprland (Wayland-Tiling-Compositor)-Konfiguration |
 | `~/.config/waybar/config`, `~/.config/waybar/config.jsonc`, `~/.config/waybar/style.css` | Waybar (Wayland-Statusleiste)-Konfiguration und CSS-Styling |
